@@ -82,4 +82,9 @@ export interface GoeyToasterProps {
   offset?: number | string
   theme?: 'light' | 'dark'
   toastOptions?: Partial<ExternalToast>
+  expand?: boolean
+  closeButton?: boolean
+  richColors?: boolean
+  visibleToasts?: number
+  dir?: 'ltr' | 'rtl'
 }

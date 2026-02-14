@@ -12,7 +12,7 @@ export const WarningIcon: FC<WarningIconProps> = ({ size = 20, className }) => (
     height={size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#D4A017"
+    stroke="currentColor"
     strokeWidth={2}
     strokeLinecap="round"
     strokeLinejoin="round"

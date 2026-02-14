@@ -35,7 +35,7 @@ describe('Icon components', () => {
     expect(svg).toBeInTheDocument()
     expect(svg.getAttribute('width')).toBe('18')
     expect(svg.getAttribute('height')).toBe('18')
-    expect(svg.getAttribute('stroke')).toBe('#4CAF50')
+    expect(svg.getAttribute('stroke')).toBe('currentColor')
   })
 
   it('ErrorIcon renders an SVG with correct size and stroke', () => {
@@ -44,7 +44,7 @@ describe('Icon components', () => {
     expect(svg).toBeInTheDocument()
     expect(svg.getAttribute('width')).toBe('18')
     expect(svg.getAttribute('height')).toBe('18')
-    expect(svg.getAttribute('stroke')).toBe('#F44336')
+    expect(svg.getAttribute('stroke')).toBe('currentColor')
   })
 
   it('WarningIcon renders an SVG with correct size and stroke', () => {
@@ -53,7 +53,7 @@ describe('Icon components', () => {
     expect(svg).toBeInTheDocument()
     expect(svg.getAttribute('width')).toBe('18')
     expect(svg.getAttribute('height')).toBe('18')
-    expect(svg.getAttribute('stroke')).toBe('#D4A017')
+    expect(svg.getAttribute('stroke')).toBe('currentColor')
   })
 
   it('InfoIcon renders an SVG with correct size and stroke', () => {
@@ -62,7 +62,7 @@ describe('Icon components', () => {
     expect(svg).toBeInTheDocument()
     expect(svg.getAttribute('width')).toBe('18')
     expect(svg.getAttribute('height')).toBe('18')
-    expect(svg.getAttribute('stroke')).toBe('#2196F3')
+    expect(svg.getAttribute('stroke')).toBe('currentColor')
   })
 
   it('SpinnerIcon renders an SVG with spin animation', () => {

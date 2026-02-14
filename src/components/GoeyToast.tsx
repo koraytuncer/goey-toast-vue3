@@ -50,6 +50,49 @@ const PH = 34 // pill height constant
 const DEFAULT_DISPLAY_DURATION = 4000
 
 /**
+ * Singleton MutationObserver registry — one observer per <ol> element shared
+ * across all GoeyToast instances mounted under that list. Each toast registers
+ * its own callback; the shared observer batches mutations via rAF and invokes
+ * every registered callback once per frame.
+ */
+const observerRegistry = new Map<Element, {
+  observer: MutationObserver
+  callbacks: Set<() => void>
+}>()
+
+function registerSonnerObserver(ol: Element, callback: () => void) {
+  let entry = observerRegistry.get(ol)
+  if (!entry) {
+    const callbacks = new Set<() => void>()
+    let applying = false
+    const observer = new MutationObserver(() => {
+      if (applying) return
+      applying = true
+      requestAnimationFrame(() => {
+        callbacks.forEach(cb => cb())
+        requestAnimationFrame(() => { applying = false })
+      })
+    })
+    observer.observe(ol, {
+      attributes: true,
+      attributeFilter: ['style'],
+      subtree: true,
+      childList: true,
+    })
+    entry = { observer, callbacks }
+    observerRegistry.set(ol, entry)
+  }
+  entry.callbacks.add(callback)
+  return () => {
+    entry!.callbacks.delete(callback)
+    if (entry!.callbacks.size === 0) {
+      entry!.observer.disconnect()
+      observerRegistry.delete(ol)
+    }
+  }
+}
+
+/**
  * Recalculates Sonner's --initial-height and --offset CSS variables on all
  * sibling toast <li> elements so expanded toasts are spaced correctly.
  * Sonner measures height once on mount (getting the compact pill height) and
@@ -482,31 +525,16 @@ export const GoeyToast: FC<GoeyToastProps> = ({
   // Keep Sonner's toast stacking in sync when it re-renders (e.g. hover expand/collapse).
   // Sonner overwrites --offset/--initial-height with stale values from its React state,
   // so we observe style mutations on the toast list and re-apply correct heights.
+  // Uses a shared singleton observer per <ol> to avoid N observers for N toasts.
   useEffect(() => {
     const wrapper = wrapperRef.current
     if (!wrapper) return
     const ol = wrapper.closest('[data-sonner-toast]')?.parentElement
     if (!ol) return
 
-    let applying = false
-    const observer = new MutationObserver(() => {
-      if (applying) return
-      applying = true
-      requestAnimationFrame(() => {
-        syncSonnerHeights(wrapper)
-        // Reset flag after a frame so subsequent Sonner re-renders are caught
-        requestAnimationFrame(() => { applying = false })
-      })
+    return registerSonnerObserver(ol, () => {
+      syncSonnerHeights(wrapper)
     })
-
-    observer.observe(ol, {
-      attributes: true,
-      attributeFilter: ['style'],
-      subtree: true,
-      childList: true,
-    })
-
-    return () => observer.disconnect()
   }, [])
 
   // Action button handler

@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { GoeyToast } from './components/GoeyToast'
+import { ToastErrorBoundary } from './components/ToastErrorBoundary'
 import type {
   GoeyToastOptions,
   GoeyPromiseData,
@@ -39,19 +40,21 @@ function GoeyToastWrapper({
   timing?: GoeyToastTimings
 }) {
   return (
-    <GoeyToast
-      title={title}
-      description={description}
-      type={type}
-      action={action}
-      icon={icon}
-      phase={initialPhase}
-      classNames={classNames}
-      fillColor={fillColor}
-      borderColor={borderColor}
-      borderWidth={borderWidth}
-      timing={timing}
-    />
+    <ToastErrorBoundary>
+      <GoeyToast
+        title={title}
+        description={description}
+        type={type}
+        action={action}
+        icon={icon}
+        phase={initialPhase}
+        classNames={classNames}
+        fillColor={fillColor}
+        borderColor={borderColor}
+        borderWidth={borderWidth}
+        timing={timing}
+      />
+    </ToastErrorBoundary>
   )
 }
 
@@ -110,18 +113,20 @@ function PromiseToastWrapper<T>({
   }, [])
 
   return (
-    <GoeyToast
-      title={title}
-      description={description}
-      type={phase === 'loading' ? 'info' : (phase as GoeyToastType)}
-      action={action}
-      phase={phase}
-      classNames={data.classNames}
-      fillColor={data.fillColor}
-      borderColor={data.borderColor}
-      borderWidth={data.borderWidth}
-      timing={data.timing}
-    />
+    <ToastErrorBoundary>
+      <GoeyToast
+        title={title}
+        description={description}
+        type={phase === 'loading' ? 'info' : (phase as GoeyToastType)}
+        action={action}
+        phase={phase}
+        classNames={data.classNames}
+        fillColor={data.fillColor}
+        borderColor={data.borderColor}
+        borderWidth={data.borderWidth}
+        timing={data.timing}
+      />
+    </ToastErrorBoundary>
   )
 }
 

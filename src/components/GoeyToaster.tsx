@@ -10,8 +10,15 @@ export function GoeyToaster({
   offset = '24px',
   theme = 'light',
   toastOptions,
+  expand,
+  closeButton,
+  richColors,
+  visibleToasts,
+  dir,
 }: GoeyToasterProps) {
-  setGoeyPosition(position)
+  useEffect(() => {
+    setGoeyPosition(position)
+  }, [position])
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return
@@ -44,6 +51,11 @@ export function GoeyToaster({
       offset={offset}
       theme={theme}
       toastOptions={{ unstyled: true, ...toastOptions }}
+      expand={expand}
+      closeButton={closeButton}
+      richColors={richColors}
+      visibleToasts={visibleToasts}
+      dir={dir}
     />
   )
 }

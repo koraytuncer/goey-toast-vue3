@@ -12,7 +12,7 @@ export const ErrorIcon: FC<ErrorIconProps> = ({ size = 20, className }) => (
     height={size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#F44336"
+    stroke="currentColor"
     strokeWidth={2}
     strokeLinecap="round"
     strokeLinejoin="round"
