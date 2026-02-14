@@ -95,7 +95,15 @@
   cursor: pointer;
   font-family: inherit;
   text-align: center;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
   transition: background 0.15s ease;
+}
+
+.actionButton:focus,
+.actionButton:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .actionSuccess {

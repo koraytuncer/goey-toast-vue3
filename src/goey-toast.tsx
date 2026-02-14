@@ -7,6 +7,7 @@ import type {
   GoeyToastPhase,
   GoeyToastType,
   GoeyToastAction,
+  GoeyToastClassNames,
 } from './types'
 
 function GoeyToastWrapper({
@@ -16,13 +17,17 @@ function GoeyToastWrapper({
   description,
   action,
   icon,
+  classNames,
+  fillColor,
 }: {
   initialPhase: GoeyToastPhase
   title: string
   type: GoeyToastType
-  description?: string
+  description?: ReactNode
   action?: GoeyToastAction
   icon?: ReactNode
+  classNames?: GoeyToastClassNames
+  fillColor?: string
 }) {
   return (
     <GoeyToast
@@ -32,6 +37,8 @@ function GoeyToastWrapper({
       action={action}
       icon={icon}
       phase={initialPhase}
+      classNames={classNames}
+      fillColor={fillColor}
     />
   )
 }
@@ -45,7 +52,7 @@ function PromiseToastWrapper<T>({
 }) {
   const [phase, setPhase] = useState<GoeyToastPhase>('loading')
   const [title, setTitle] = useState(data.loading)
-  const [description, setDescription] = useState(data.description?.loading)
+  const [description, setDescription] = useState<ReactNode | undefined>(data.description?.loading)
   const [action, setAction] = useState<GoeyToastAction | undefined>(undefined)
 
   useEffect(() => {
@@ -85,6 +92,8 @@ function PromiseToastWrapper<T>({
       type={phase === 'loading' ? 'info' : (phase as GoeyToastType)}
       action={action}
       phase={phase}
+      classNames={data.classNames}
+      fillColor={data.fillColor}
     />
   )
 }
@@ -103,6 +112,8 @@ function createGoeyToast(
         description={options?.description}
         action={options?.action}
         icon={options?.icon}
+        classNames={options?.classNames}
+        fillColor={options?.fillColor}
       />
     ),
     { duration: options?.duration, id: options?.id }

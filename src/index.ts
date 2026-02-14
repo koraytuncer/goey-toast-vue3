@@ -5,4 +5,5 @@ export type {
   GoeyPromiseData,
   GoeyToasterProps,
   GoeyToastAction,
+  GoeyToastClassNames,
 } from './types'

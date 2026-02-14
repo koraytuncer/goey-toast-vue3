@@ -1,16 +1,18 @@
 import { useRef, useState, useEffect, useLayoutEffect, useCallback, type FC, type ReactNode } from 'react'
 import { motion, AnimatePresence, animate } from 'framer-motion'
-import type { GoeyToastAction, GoeyToastPhase, GoeyToastType } from '../types'
+import type { GoeyToastAction, GoeyToastClassNames, GoeyToastPhase, GoeyToastType } from '../types'
 import { SuccessIcon, ErrorIcon, WarningIcon, InfoIcon, SpinnerIcon } from '../icons'
 import styles from './GoeyToast.module.css'
 
 export interface GoeyToastProps {
   title: string
-  description?: string
+  description?: ReactNode
   type: GoeyToastType
   action?: GoeyToastAction
   icon?: ReactNode
   phase: GoeyToastPhase
+  classNames?: GoeyToastClassNames
+  fillColor?: string
 }
 
 const phaseIconMap: Record<Exclude<GoeyToastPhase, 'loading'>, FC<{ size?: number; className?: string }>> = {
@@ -37,6 +39,39 @@ const actionColorMap: Record<GoeyToastPhase, string> = {
 }
 
 const PH = 34 // pill height constant
+
+/**
+ * Recalculates Sonner's --initial-height and --offset CSS variables on all
+ * sibling toast <li> elements so expanded toasts are spaced correctly.
+ * Sonner measures height once on mount (getting the compact pill height) and
+ * never re-measures for toast.custom() content. This function corrects that.
+ */
+function syncSonnerHeights(wrapperEl: HTMLElement | null) {
+  if (!wrapperEl) return
+  const li = wrapperEl.closest('[data-sonner-toast]') as HTMLElement | null
+  if (!li?.parentElement) return
+
+  const ol = li.parentElement
+  const toaster = ol.closest('[data-sonner-toaster]') as HTMLElement | null
+  const gap = toaster
+    ? parseInt(getComputedStyle(toaster).getPropertyValue('--gap') || '14', 10)
+    : 14
+
+  const toasts = Array.from(
+    ol.querySelectorAll(':scope > [data-sonner-toast]')
+  ) as HTMLElement[]
+
+  let offset = 0
+  for (const t of toasts) {
+    const content = t.firstElementChild as HTMLElement | null
+    const height = content ? content.getBoundingClientRect().height : 0
+    if (height > 0) {
+      t.style.setProperty('--initial-height', `${height}px`)
+      t.style.setProperty('--offset', `${offset}px`)
+      offset += height + gap
+    }
+  }
+}
 
 /**
  * Parametric morph path: pill lobe stays constant, body grows from underneath.
@@ -91,6 +126,8 @@ export const GoeyToast: FC<GoeyToastProps> = ({
   action,
   icon,
   phase,
+  classNames,
+  fillColor = '#F2F1EC',
 }) => {
   // Action success override state
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
@@ -130,6 +167,10 @@ export const GoeyToast: FC<GoeyToastProps> = ({
   useEffect(() => { dimsRef.current = dims }, [dims])
 
   // Push current animated state to SVG DOM + constrain wrapper/content
+  // NOTE: We intentionally do NOT set style.height on the wrapper.
+  // The content's maxHeight constrains the rendered height, and letting
+  // the wrapper derive its height naturally allows Sonner to accurately
+  // measure the toast height for stacking/positioning.
   const flush = useCallback(() => {
     const { pw: p, bw: b, th: h } = aDims.current
     if (p <= 0 || b <= 0 || h <= 0) return
@@ -140,7 +181,6 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       // Fully expanded: clear all constraints
       if (wrapperRef.current) {
         wrapperRef.current.style.width = ''
-        wrapperRef.current.style.height = ''
       }
       if (contentRef.current) {
         contentRef.current.style.width = ''
@@ -155,7 +195,6 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       const currentH = PH + (h - PH) * t
       if (wrapperRef.current) {
         wrapperRef.current.style.width = currentW + 'px'
-        wrapperRef.current.style.height = currentH + 'px'
       }
       if (contentRef.current) {
         contentRef.current.style.width = b + 'px'
@@ -168,7 +207,6 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       const pillW = Math.min(p, b)
       if (wrapperRef.current) {
         wrapperRef.current.style.width = pillW + 'px'
-        wrapperRef.current.style.height = PH + 'px'
       }
       if (contentRef.current) {
         contentRef.current.style.width = ''
@@ -184,11 +222,10 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     if (!headerRef.current || !contentRef.current) return
     const wr = wrapperRef.current
     const savedW = wr?.style.width ?? ''
-    const savedH = wr?.style.height ?? ''
     const savedOv = contentRef.current.style.overflow
     const savedMH = contentRef.current.style.maxHeight
     const savedCW = contentRef.current.style.width
-    if (wr) { wr.style.width = ''; wr.style.height = '' }
+    if (wr) { wr.style.width = '' }
     contentRef.current.style.overflow = ''
     contentRef.current.style.maxHeight = ''
     contentRef.current.style.width = ''
@@ -197,7 +234,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     const bw = contentRef.current.offsetWidth
     const th = contentRef.current.offsetHeight
 
-    if (wr) { wr.style.width = savedW; wr.style.height = savedH }
+    if (wr) { wr.style.width = savedW }
     contentRef.current.style.overflow = savedOv
     contentRef.current.style.maxHeight = savedMH
     contentRef.current.style.width = savedCW
@@ -339,6 +376,12 @@ export const GoeyToast: FC<GoeyToastProps> = ({
           aDims.current = { ...dimsRef.current }
           flush()
         },
+        onComplete: () => {
+          morphTRef.current = 1
+          aDims.current = { ...dimsRef.current }
+          flush()
+          syncSonnerHeights(wrapperRef.current)
+        },
       })
     })
 
@@ -347,6 +390,36 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       morphCtrl.current?.stop()
     }
   }, [showBody, flush])
+
+  // Keep Sonner's toast stacking in sync when it re-renders (e.g. hover expand/collapse).
+  // Sonner overwrites --offset/--initial-height with stale values from its React state,
+  // so we observe style mutations on the toast list and re-apply correct heights.
+  useEffect(() => {
+    const wrapper = wrapperRef.current
+    if (!wrapper) return
+    const ol = wrapper.closest('[data-sonner-toast]')?.parentElement
+    if (!ol) return
+
+    let applying = false
+    const observer = new MutationObserver(() => {
+      if (applying) return
+      applying = true
+      requestAnimationFrame(() => {
+        syncSonnerHeights(wrapper)
+        // Reset flag after a frame so subsequent Sonner re-renders are caught
+        requestAnimationFrame(() => { applying = false })
+      })
+    })
+
+    observer.observe(ol, {
+      attributes: true,
+      attributeFilter: ['style'],
+      subtree: true,
+      childList: true,
+    })
+
+    return () => observer.disconnect()
+  }, [])
 
   // Action button handler
   const handleActionClick = useCallback(() => {
@@ -369,7 +442,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
 
   const iconAndTitle = (
     <>
-      <div className={styles.iconWrapper}>
+      <div className={`${styles.iconWrapper}${classNames?.icon ? ` ${classNames.icon}` : ''}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={isLoading ? 'spinner' : effectivePhase}
@@ -382,26 +455,26 @@ export const GoeyToast: FC<GoeyToastProps> = ({
           </motion.div>
         </AnimatePresence>
       </div>
-      <span className={styles.title}>{effectiveTitle}</span>
+      <span className={`${styles.title}${classNames?.title ? ` ${classNames.title}` : ''}`}>{effectiveTitle}</span>
     </>
   )
 
   return (
-    <div ref={wrapperRef} className={styles.wrapper}>
+    <div ref={wrapperRef} className={`${styles.wrapper}${classNames?.wrapper ? ` ${classNames.wrapper}` : ''}`}>
       {/* SVG background — overflow visible, path controls shape */}
       <svg
         className={styles.blobSvg}
         aria-hidden
       >
-        <path ref={pathRef} fill="#F2F1EC" />
+        <path ref={pathRef} fill={fillColor} />
       </svg>
 
       {/* Content */}
       <div
         ref={contentRef}
-        className={`${styles.content} ${showBody ? styles.contentExpanded : styles.contentCompact}`}
+        className={`${styles.content} ${showBody ? styles.contentExpanded : styles.contentCompact}${classNames?.content ? ` ${classNames.content}` : ''}`}
       >
-        <div ref={headerRef} className={`${styles.header} ${titleColorMap[effectivePhase]}`}>
+        <div ref={headerRef} className={`${styles.header} ${titleColorMap[effectivePhase]}${classNames?.header ? ` ${classNames.header}` : ''}`}>
           {iconAndTitle}
         </div>
 
@@ -409,7 +482,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
           {showBody && hasDescription && (
             <motion.div
               key="description"
-              className={styles.description}
+              className={`${styles.description}${classNames?.description ? ` ${classNames.description}` : ''}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -424,14 +497,14 @@ export const GoeyToast: FC<GoeyToastProps> = ({
           {showBody && hasAction && effectiveAction && (
             <motion.div
               key="action"
-              className={styles.actionWrapper}
+              className={`${styles.actionWrapper}${classNames?.actionWrapper ? ` ${classNames.actionWrapper}` : ''}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1], delay: 0.1 }}
             >
               <button
-                className={`${styles.actionButton} ${actionColorMap[effectivePhase]}`}
+                className={`${styles.actionButton} ${actionColorMap[effectivePhase]}${classNames?.actionButton ? ` ${classNames.actionButton}` : ''}`}
                 onClick={handleActionClick}
                 type="button"
               >

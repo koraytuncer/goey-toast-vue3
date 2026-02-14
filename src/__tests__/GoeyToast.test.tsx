@@ -99,4 +99,109 @@ describe('GoeyToast', () => {
     )
     expect(screen.getByTestId('custom-icon')).toBeInTheDocument()
   })
+
+  it('renders ReactNode description', () => {
+    render(
+      <GoeyToast
+        title="Done!"
+        description={<span data-testid="custom-desc">Rich content</span>}
+        type="success"
+        phase="success"
+      />
+    )
+    act(() => { vi.advanceTimersByTime(400) })
+    expect(screen.getByTestId('custom-desc')).toBeInTheDocument()
+    expect(screen.getByText('Rich content')).toBeInTheDocument()
+  })
+
+  it('applies classNames to wrapper element', () => {
+    const { container } = render(
+      <GoeyToast
+        title="Styled"
+        type="info"
+        phase="info"
+        classNames={{ wrapper: 'my-custom-wrapper' }}
+      />
+    )
+    const wrapper = container.firstChild as HTMLElement
+    expect(wrapper.className).toContain('my-custom-wrapper')
+  })
+
+  it('applies classNames to content, header, title, and icon elements', () => {
+    const { container } = render(
+      <GoeyToast
+        title="Styled"
+        type="info"
+        phase="info"
+        classNames={{
+          content: 'custom-content',
+          header: 'custom-header',
+          title: 'custom-title',
+          icon: 'custom-icon',
+        }}
+      />
+    )
+    expect(container.querySelector('[class*="content"]')!.className).toContain('custom-content')
+    expect(container.querySelector('[class*="header"]')!.className).toContain('custom-header')
+    const titleEl = container.querySelector('span[class*="title"]')!
+    expect(titleEl.className).toContain('custom-title')
+    expect(container.querySelector('[class*="iconWrapper"]')!.className).toContain('custom-icon')
+  })
+
+  it('applies classNames to description element', () => {
+    const { container } = render(
+      <GoeyToast
+        title="Styled"
+        description="Some text"
+        type="info"
+        phase="info"
+        classNames={{ description: 'custom-desc' }}
+      />
+    )
+    act(() => { vi.advanceTimersByTime(400) })
+    expect(container.querySelector('[class*="description"]')!.className).toContain('custom-desc')
+  })
+
+  it('applies classNames to action wrapper and button', () => {
+    const onClick = vi.fn()
+    const { container } = render(
+      <GoeyToast
+        title="Styled"
+        description="Some text"
+        type="error"
+        phase="error"
+        action={{ label: 'Retry', onClick }}
+        classNames={{ actionWrapper: 'custom-aw', actionButton: 'custom-ab' }}
+      />
+    )
+    act(() => { vi.advanceTimersByTime(400) })
+    expect(container.querySelector('[class*="actionWrapper"]')!.className).toContain('custom-aw')
+    const button = screen.getByRole('button', { name: 'Retry' })
+    expect(button.className).toContain('custom-ab')
+  })
+
+  it('uses custom fillColor for SVG blob', () => {
+    const { container } = render(
+      <GoeyToast
+        title="Dark"
+        type="info"
+        phase="info"
+        fillColor="#1a1a2e"
+      />
+    )
+    const path = container.querySelector('svg path')!
+    expect(path.getAttribute('fill')).toBe('#1a1a2e')
+  })
+
+  it('uses default fillColor when not provided', () => {
+    const { container } = render(
+      <GoeyToast
+        title="Default"
+        type="info"
+        phase="info"
+      />
+    )
+    const path = container.querySelector('svg path')!
+    expect(path.getAttribute('fill')).toBe('#F2F1EC')
+  })
 })

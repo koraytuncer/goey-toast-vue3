@@ -3,6 +3,17 @@ import type { ExternalToast, ToasterProps } from 'sonner'
 
 export type GoeyToastType = 'success' | 'error' | 'warning' | 'info'
 
+export interface GoeyToastClassNames {
+  wrapper?: string
+  content?: string
+  header?: string
+  title?: string
+  icon?: string
+  description?: string
+  actionWrapper?: string
+  actionButton?: string
+}
+
 export interface GoeyToastAction {
   label: string
   onClick: () => void
@@ -11,19 +22,23 @@ export interface GoeyToastAction {
 
 export interface GoeyToastData {
   title: string
-  description?: string
+  description?: ReactNode
   type: GoeyToastType
   action?: GoeyToastAction
   icon?: ReactNode
   duration?: number
+  classNames?: GoeyToastClassNames
+  fillColor?: string
 }
 
 export interface GoeyToastOptions {
-  description?: string
+  description?: ReactNode
   action?: GoeyToastAction
   icon?: ReactNode
   duration?: number
   id?: string | number
+  classNames?: GoeyToastClassNames
+  fillColor?: string
 }
 
 export interface GoeyPromiseData<T> {
@@ -31,14 +46,16 @@ export interface GoeyPromiseData<T> {
   success: string | ((data: T) => string)
   error: string | ((error: unknown) => string)
   description?: {
-    loading?: string
-    success?: string | ((data: T) => string)
-    error?: string | ((error: unknown) => string)
+    loading?: ReactNode
+    success?: ReactNode | ((data: T) => ReactNode)
+    error?: ReactNode | ((error: unknown) => ReactNode)
   }
   action?: {
     success?: GoeyToastAction
     error?: GoeyToastAction
   }
+  classNames?: GoeyToastClassNames
+  fillColor?: string
 }
 
 export type GoeyToastPhase = 'loading' | 'success' | 'error' | 'warning' | 'info'
