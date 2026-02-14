@@ -666,6 +666,38 @@ function App() {
             <div className="doc-section">
               <div className="doc-section-label">
                 <div className="doc-number">02</div>
+                <h3>shadcn/ui</h3>
+              </div>
+              <div className="doc-section-content">
+                <p>
+                  Install as a shadcn component with a single command. This adds a thin wrapper
+                  to your <span className="inline-code">components/ui</span> directory and
+                  auto-installs dependencies.
+                </p>
+                <pre><code>{`npx shadcn@latest add https://goey-toast.vercel.app/r/goey-toaster.json`}</code></pre>
+                <p>Then use it in your layout:</p>
+                <pre><code>{`import { GoeyToaster } from "@/components/ui/goey-toaster"
+import { goeyToast } from "@/components/ui/goey-toaster"
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <GoeyToaster />
+      </body>
+    </html>
+  )
+}
+
+// Trigger from anywhere
+goeyToast.success("Saved!")`}</code></pre>
+              </div>
+            </div>
+
+            <div className="doc-section">
+              <div className="doc-section-label">
+                <div className="doc-number">03</div>
                 <h3>Toast Types</h3>
               </div>
               <div className="doc-section-content">
@@ -686,7 +718,7 @@ goeyToast.info('FYI')                 // blue`}</code></pre>
 
             <div className="doc-section">
               <div className="doc-section-label">
-                <div className="doc-number">03</div>
+                <div className="doc-number">04</div>
                 <h3>Description</h3>
               </div>
               <div className="doc-section-content">
@@ -716,7 +748,7 @@ goeyToast.success('Deployed', {
 
             <div className="doc-section">
               <div className="doc-section-label">
-                <div className="doc-number">04</div>
+                <div className="doc-number">05</div>
                 <h3>Action Button</h3>
               </div>
               <div className="doc-section-content">
@@ -741,7 +773,7 @@ goeyToast.success('Deployed', {
 
             <div className="doc-section">
               <div className="doc-section-label">
-                <div className="doc-number">05</div>
+                <div className="doc-number">06</div>
                 <h3>Promise Toasts</h3>
               </div>
               <div className="doc-section-content">
@@ -773,7 +805,7 @@ goeyToast.success('Deployed', {
 
             <div className="doc-section">
               <div className="doc-section-label">
-                <div className="doc-number">06</div>
+                <div className="doc-number">07</div>
                 <h3>Timings</h3>
               </div>
               <div className="doc-section-content">
@@ -799,7 +831,7 @@ goeyToast.success('Deployed', {
 
             <div className="doc-section">
               <div className="doc-section-label">
-                <div className="doc-number">07</div>
+                <div className="doc-number">08</div>
                 <h3>Toaster Props</h3>
               </div>
               <div className="doc-section-content">
@@ -828,7 +860,7 @@ goeyToast.success('Deployed', {
 
             <div className="doc-section">
               <div className="doc-section-label">
-                <div className="doc-number">08</div>
+                <div className="doc-number">09</div>
                 <h3>Options</h3>
               </div>
               <div className="doc-section-content">
@@ -856,7 +888,7 @@ goeyToast.success('Deployed', {
 
             <div className="doc-section">
               <div className="doc-section-label">
-                <div className="doc-number">09</div>
+                <div className="doc-number">10</div>
                 <h3>Custom Styling</h3>
               </div>
               <div className="doc-section-content">
