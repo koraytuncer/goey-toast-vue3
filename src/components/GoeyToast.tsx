@@ -379,6 +379,70 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     })
   }, [pw, bw, th, hasDims, showBody, flush, prefersReducedMotion])
 
+  // Squish animation controller (shared between landing + blob squish)
+  const blobSquishCtrl = useRef<ReturnType<typeof animate> | null>(null)
+
+  // Landing squish: vertical scaleY + compensating scaleX bounce (like a soft blob landing)
+  const triggerLandingSquish = useCallback(() => {
+    if (!wrapperRef.current || prefersReducedMotion) return
+    blobSquishCtrl.current?.stop()
+    const el = wrapperRef.current
+    blobSquishCtrl.current = animate(0, 1, {
+      type: 'spring',
+      stiffness: 350,
+      damping: 12,
+      mass: 0.7,
+      onUpdate: (v) => {
+        const squeeze = Math.sin(v * Math.PI)
+        const sy = 1 - 0.12 * squeeze
+        const sx = 1 + 0.06 * squeeze
+        const mirror = el.style.transform?.includes('scaleX(-1)') ? 'scaleX(-1) ' : ''
+        el.style.transformOrigin = 'center bottom'
+        el.style.transform = mirror + `scaleX(${sx}) scaleY(${sy})`
+      },
+      onComplete: () => {
+        const right = el.style.transform?.includes('scaleX(-1)')
+        el.style.transform = right ? 'scaleX(-1)' : ''
+        el.style.transformOrigin = ''
+      },
+    })
+  }, [prefersReducedMotion])
+
+  // Blob squish: full vertical → horizontal oscillation (only after morph settles)
+  const triggerBlobSquish = useCallback(() => {
+    if (!wrapperRef.current || prefersReducedMotion) return
+    blobSquishCtrl.current?.stop()
+    const el = wrapperRef.current
+    blobSquishCtrl.current = animate(0, 1, {
+      type: 'spring',
+      stiffness: 300,
+      damping: 10,
+      mass: 0.8,
+      onUpdate: (v) => {
+        const s = Math.sin(v * Math.PI * 2)
+        const sx = 1 + 0.04 * s
+        const sy = 1 - 0.04 * s
+        el.style.transformOrigin = 'center center'
+        el.style.transform = (el.style.transform?.includes('scaleX(-1)') ? 'scaleX(-1) ' : '') + `scaleX(${sx}) scaleY(${sy})`
+      },
+      onComplete: () => {
+        const right = el.style.transform?.includes('scaleX(-1)')
+        el.style.transform = right ? 'scaleX(-1)' : ''
+        el.style.transformOrigin = ''
+      },
+    })
+  }, [prefersReducedMotion])
+
+  // Landing squish after Sonner's entrance animation settles
+  const mountSquished = useRef(false)
+  useEffect(() => {
+    if (hasDims && !mountSquished.current) {
+      mountSquished.current = true
+      const t = setTimeout(triggerLandingSquish, 350)
+      return () => clearTimeout(t)
+    }
+  }, [hasDims, triggerLandingSquish])
+
   // Phase 1: expand (delay showBody) or collapse (reverse morph)
   useEffect(() => {
     if (isExpanded) {
@@ -437,6 +501,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
           setShowBody(false)
           aDims.current = { ...targetDims }
           flush()
+          triggerBlobSquish()
         },
       })
       return () => { morphCtrl.current?.stop() }
@@ -513,6 +578,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
           aDims.current = { ...dimsRef.current }
           flush()
           syncSonnerHeights(wrapperRef.current)
+          triggerBlobSquish()
         },
       })
     })
@@ -523,14 +589,16 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     }
   }, [showBody, flush, prefersReducedMotion])
 
-  // Header elastic squish: spring down when expanding, spring back on collapse
+  // Header elastic squish: spring down when expanding, spring back once on collapse/dismiss
+  const headerSquished = useRef(false)
   useEffect(() => {
     if (!headerRef.current || prefersReducedMotion) return
     headerSquishCtrl.current?.stop()
     const el = headerRef.current
 
-    if (showBody) {
+    if (showBody && !dismissing) {
       // Squish down with elastic spring
+      headerSquished.current = true
       headerSquishCtrl.current = animate(0, 1, {
         type: 'spring',
         stiffness: 300,
@@ -542,8 +610,9 @@ export const GoeyToast: FC<GoeyToastProps> = ({
           el.style.transform = `scale(${scale}) translateY(${pushY}px)`
         },
       })
-    } else {
-      // Spring back to normal
+    } else if (headerSquished.current) {
+      // Spring back to normal — only once (avoid re-squish when showBody goes false later)
+      headerSquished.current = false
       headerSquishCtrl.current = animate(1, 0, {
         type: 'spring',
         stiffness: 400,
@@ -561,7 +630,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     }
 
     return () => { headerSquishCtrl.current?.stop() }
-  }, [showBody, prefersReducedMotion])
+  }, [showBody, dismissing, prefersReducedMotion])
 
   // Keep Sonner's toast stacking in sync when it re-renders (e.g. hover expand/collapse).
   // Sonner overwrites --offset/--initial-height with stale values from its React state,
