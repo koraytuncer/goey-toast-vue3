@@ -1,6 +1,6 @@
 # goey-toast
 
-Morphing toast notifications for React. Organic blob animations powered by [Sonner](https://sonner.emilkowal.dev/) and [Framer Motion](https://www.framer.com/motion/).
+[![goey-toast](https://goey-toast.vercel.app/og-image.png)](https://goey-toast.vercel.app)
 
 **[Live Demo & Docs](https://goey-toast.vercel.app)**
 
