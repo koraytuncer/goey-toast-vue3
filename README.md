@@ -23,6 +23,14 @@
 npm install goey-toast
 ```
 
+### shadcn/ui
+
+```bash
+npx shadcn@latest add https://goey-toast.vercel.app/r/goey-toaster.json
+```
+
+This installs a thin wrapper component at `components/ui/goey-toaster.tsx` and auto-installs the `goey-toast` and `framer-motion` packages.
+
 ### Peer Dependencies
 
 goey-toast requires the following peer dependencies:
