@@ -136,6 +136,7 @@ function App() {
   const [bExpandDuration, setBExpandDuration] = useState(0.9)
   const [bCollapseDuration, setBCollapseDuration] = useState(0.9)
   const [bDisplayDuration, setBDisplayDuration] = useState(4000)
+  const [bSpring, setBSpring] = useState(true)
 
   // Close mobile menu on page change
   useEffect(() => {
@@ -172,6 +173,7 @@ function App() {
       collapseDuration: bCollapseDuration,
       displayDuration: bDisplayDuration,
     }
+    if (!bSpring) options.spring = false
 
     if (bType === 'default') goeyToast(bTitle, options)
     else goeyToast[bType](bTitle, options)
@@ -181,7 +183,8 @@ function App() {
     const lines: string[] = []
     const hasFill = bFillColor !== '#ffffff'
     const hasBorder = bHasBorder && bBorderColor
-    const hasOpts = bHasDesc || bHasAction || hasFill || hasBorder
+    const hasSpringOff = !bSpring
+    const hasOpts = bHasDesc || bHasAction || hasFill || hasBorder || hasSpringOff
     const call = bType === 'default' ? 'goeyToast' : `goeyToast.${bType}`
 
     lines.push(`<GoeyToaster position="${bPosition}" />`)
@@ -202,6 +205,7 @@ function App() {
         lines.push(`  borderColor: '${bBorderColor}',`)
         lines.push(`  borderWidth: ${bBorderWidth},`)
       }
+      if (hasSpringOff) lines.push(`  spring: false,`)
       lines.push(`  timing: {`)
       lines.push(`    expandDelay: ${bExpandDelay},`)
       lines.push(`    expandDuration: ${bExpandDuration},`)
@@ -398,6 +402,15 @@ function App() {
                 })}>
                   ReactNode Description
                 </button>
+              </div>
+            </div>
+
+            <div className="section">
+              <div className="section-label">No Spring (Smooth Easing)</div>
+              <div className="buttons">
+                <button onClick={() => goeyToast.success('Changes Saved', { spring: false })}>Success (no spring)</button>
+                <button onClick={() => goeyToast.error('Connection lost', { description: 'Unable to reach the server. Check your internet connection and try again.', spring: false })}>Error + Desc (no spring)</button>
+                <button onClick={() => goeyToast.info('Share link ready', { description: 'Your share link has been generated and is ready to copy.', action: { label: 'Copy to Clipboard', onClick: () => navigator.clipboard.writeText('https://example.com/share/abc123'), successLabel: 'Copied!' }, spring: false })}>Action (no spring)</button>
               </div>
             </div>
 
@@ -605,6 +618,16 @@ function App() {
                     </div>
                     <input type="range" className="slider" min={1000} max={20000} step={500} value={bDisplayDuration} onChange={(e) => setBDisplayDuration(Number(e.target.value))} />
                   </div>
+                </div>
+              </div>
+
+              {/* Spring Animation */}
+              <div className="builder-row">
+                <div className="toggle-row">
+                  <span className="toggle-row-label">Spring Animation</span>
+                  <button className="toggle" data-on={bSpring} onClick={() => setBSpring(!bSpring)}>
+                    <div className="toggle-knob" />
+                  </button>
                 </div>
               </div>
 
@@ -853,6 +876,7 @@ goeyToast.success('Deployed', {
                     <tr><td>gap</td><td>number</td><td>14</td><td>Gap between stacked toasts</td></tr>
                     <tr><td>offset</td><td>number | string</td><td>'24px'</td><td>Distance from screen edge</td></tr>
                     <tr><td>theme</td><td>'light' | 'dark'</td><td>'light'</td><td>Color theme</td></tr>
+                    <tr><td>spring</td><td>boolean</td><td>true</td><td>Enable spring/bounce animations globally</td></tr>
                   </tbody>
                 </table>
                 </div>
@@ -881,6 +905,7 @@ goeyToast.success('Deployed', {
                     <tr><td>borderColor</td><td>string</td><td>Border color of the blob</td></tr>
                     <tr><td>borderWidth</td><td>number</td><td>Border width in px (default 1.5)</td></tr>
                     <tr><td>timing</td><td>GoeyToastTimings</td><td>Animation timing overrides</td></tr>
+                    <tr><td>spring</td><td>boolean</td><td>Enable spring/bounce animations (default true)</td></tr>
                   </tbody>
                 </table>
                 </div>
@@ -930,6 +955,39 @@ goeyToast.success('Deployed', {
                 </div>
               </div>
             </div>
+            <div className="doc-section">
+              <div className="doc-section-label">
+                <div className="doc-number">11</div>
+                <h3>Spring Animation</h3>
+              </div>
+              <div className="doc-section-content">
+                <p>
+                  Disable the spring/bounce effect for a cleaner, more subtle animation style.
+                  Set per-toast or globally on the Toaster.
+                </p>
+                <pre><code>{`// Per-toast
+goeyToast.success('Saved', {
+  description: 'Your changes have been synced.',
+  spring: false,
+})
+
+// Global default
+<GoeyToaster spring={false} />`}</code></pre>
+                <p>
+                  When <span className="inline-code">spring</span> is{' '}
+                  <span className="inline-code">false</span>, all spring-based animations
+                  (landing squish, blob morph, pill resize, header squish) use smooth
+                  ease-in-out curves instead. Error shake still works regardless.
+                  Per-toast values override the global setting.
+                </p>
+                <div className="doc-try-buttons">
+                  <button onClick={() => goeyToast.success('Smooth save', { spring: false })}>No Spring (pill)</button>
+                  <button onClick={() => goeyToast.warning('Storage warning', { description: 'You are using 95% of your available storage.', spring: false })}>No Spring (expanded)</button>
+                  <button onClick={() => goeyToast.success('Bouncy save', { spring: true })}>With Spring (compare)</button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </>
       )}

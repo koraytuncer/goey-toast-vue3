@@ -38,6 +38,7 @@ export interface GoeyToastData {
   fillColor?: string
   borderColor?: string
   borderWidth?: number
+  spring?: boolean
 }
 
 export interface GoeyToastOptions {
@@ -51,6 +52,7 @@ export interface GoeyToastOptions {
   borderColor?: string
   borderWidth?: number
   timing?: GoeyToastTimings
+  spring?: boolean
 }
 
 export interface GoeyPromiseData<T> {
@@ -71,6 +73,7 @@ export interface GoeyPromiseData<T> {
   borderColor?: string
   borderWidth?: number
   timing?: GoeyToastTimings
+  spring?: boolean
 }
 
 export type GoeyToastPhase = 'loading' | 'default' | 'success' | 'error' | 'warning' | 'info'
@@ -87,4 +90,5 @@ export interface GoeyToasterProps {
   richColors?: boolean
   visibleToasts?: number
   dir?: 'ltr' | 'rtl'
+  spring?: boolean
 }

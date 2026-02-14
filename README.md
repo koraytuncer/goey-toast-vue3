@@ -103,6 +103,7 @@ Options passed as the second argument to `goeyToast()` and type-specific methods
 | `borderColor` | `string`             | Border color of the blob           |
 | `borderWidth` | `number`             | Border width in px (default 1.5)   |
 | `timing`      | `GoeyToastTimings`   | Animation timing overrides         |
+| `spring`      | `boolean`            | Enable spring/bounce animations (default `true`) |
 
 ### `GoeyToastAction`
 
@@ -150,6 +151,7 @@ Props for the `<GoeyToaster />` component.
 | `offset`     | `number \| string`                    | `'24px'`         | Distance from screen edge                     |
 | `theme`      | `'light' \| 'dark'`                   | `'light'`        | Color theme                                   |
 | `toastOptions` | `Partial<ExternalToast>`            | --               | Default options passed to Sonner              |
+| `spring`     | `boolean`                             | `true`           | Enable spring/bounce animations globally      |
 
 ### `GoeyPromiseData<T>`
 
@@ -167,6 +169,7 @@ Configuration for `goeyToast.promise()`.
 | `borderColor` | `string`                                      | No       | Border color of the blob                       |
 | `borderWidth` | `number`                                      | No       | Border width in px                             |
 | `timing`      | `GoeyToastTimings`                            | No       | Animation timing overrides                     |
+| `spring`      | `boolean`                                     | No       | Enable spring/bounce animations (default `true`) |
 
 **`description` sub-fields:**
 
@@ -272,6 +275,23 @@ goeyToast.success('Saved', {
   },
 })
 ```
+
+### Disabling Spring Animations
+
+Disable bounce/spring animations for a cleaner, more subtle look:
+
+```tsx
+// Per-toast: disable spring for this toast only
+goeyToast.success('Saved', {
+  description: 'Your changes have been synced.',
+  spring: false,
+})
+
+// Globally: disable spring for all toasts
+<GoeyToaster spring={false} />
+```
+
+When `spring` is `false`, all spring-based animations (landing squish, blob squish, morph transitions, pill resize, header squish) use smooth ease-in-out curves instead. Error shake animations still work regardless of this setting.
 
 ## Exports
 

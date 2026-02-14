@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useLayoutEffect, useCallback, type FC, type ReactNode } from 'react'
 import { motion, AnimatePresence, animate } from 'framer-motion'
 import type { GoeyToastAction, GoeyToastClassNames, GoeyToastPhase, GoeyToastTimings, GoeyToastType } from '../types'
-import { getGoeyPosition } from '../context'
+import { getGoeyPosition, getGoeySpring } from '../context'
 import { DefaultIcon, SuccessIcon, ErrorIcon, WarningIcon, InfoIcon, SpinnerIcon } from '../icons'
 import { usePrefersReducedMotion } from '../usePrefersReducedMotion'
 import { styles } from './goey-styles'
@@ -18,6 +18,7 @@ export interface GoeyToastProps {
   borderColor?: string
   borderWidth?: number
   timing?: GoeyToastTimings
+  spring?: boolean
 }
 
 const phaseIconMap: Record<Exclude<GoeyToastPhase, 'loading'>, FC<{ size?: number; className?: string }>> = {
@@ -176,6 +177,9 @@ function morphPath(pw: number, bw: number, th: number, t: number): string {
   ].join(' ')
 }
 
+// Smooth easing curve for non-spring animations
+const SMOOTH_EASE = [0.4, 0, 0.2, 1] as const
+
 export const GoeyToast: FC<GoeyToastProps> = ({
   title,
   description,
@@ -187,10 +191,13 @@ export const GoeyToast: FC<GoeyToastProps> = ({
   borderColor,
   borderWidth,
   timing,
+  spring: springProp,
 }) => {
   const position = getGoeyPosition()
   const isRight = position?.includes('right') ?? false
   const prefersReducedMotion = usePrefersReducedMotion()
+  // Per-toast spring overrides global, default to true
+  const useSpring = springProp ?? getGoeySpring()
 
   // Action success override state
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
@@ -347,19 +354,21 @@ export const GoeyToast: FC<GoeyToastProps> = ({
   const lastSquishTime = useRef(0)
   const triggerLandingSquish = useCallback((phase: 'expand' | 'collapse' | 'mount' = 'mount') => {
     if (!wrapperRef.current || prefersReducedMotion) return
+    // Skip squish entirely when spring is disabled
+    if (!useSpring) return
     const now = Date.now()
     if (now - lastSquishTime.current < 300) return
     lastSquishTime.current = now
     blobSquishCtrl.current?.stop()
     const el = wrapperRef.current
-    const spring = phase === 'collapse'
+    const springConfig = phase === 'collapse'
       ? squishSpring(collapseDur, DEFAULT_COLLAPSE_DUR)
       : squishSpring(expandDur, DEFAULT_EXPAND_DUR)
     // Softer squish on collapse — blob is wider so same % looks more drastic
     const compressY = phase === 'collapse' ? 0.07 : 0.12
     const expandX = phase === 'collapse' ? 0.035 : 0.06
     blobSquishCtrl.current = animate(0, 1, {
-      ...spring,
+      ...springConfig,
       onUpdate: (v) => {
         const intensity = Math.sin(v * Math.PI)
         const sy = 1 - compressY * intensity
@@ -374,7 +383,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
         el.style.transformOrigin = ''
       },
     })
-  }, [prefersReducedMotion, expandDur, collapseDur])
+  }, [prefersReducedMotion, expandDur, collapseDur, useSpring])
 
   // Handle dims changes: pill resize animation (compact) or direct update (expanded)
   useLayoutEffect(() => {
@@ -419,10 +428,11 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     if (Date.now() - collapseEndTime.current > 500 && !isExpanded) {
       triggerLandingSquish('expand')
     }
+    const pillResizeTransition = useSpring
+      ? { type: 'spring' as const, duration: 0.5, bounce: 0.35 }
+      : { duration: 0.4, ease: SMOOTH_EASE }
     pillResizeCtrl.current = animate(0, 1, {
-      type: 'spring',
-      duration: 0.5,
-      bounce: 0.35,
+      ...pillResizeTransition,
       onUpdate: (t) => {
         aDims.current = {
           pw: prev.pw + (target.pw - prev.pw) * t,
@@ -432,7 +442,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
         flush()
       },
     })
-  }, [pw, bw, th, hasDims, showBody, flush, prefersReducedMotion, triggerLandingSquish])
+  }, [pw, bw, th, hasDims, showBody, flush, prefersReducedMotion, triggerLandingSquish, useSpring])
 
   // Squish on entry: only for simple toasts (no body text) — expanded toasts get squish from showBody
   const expandDelayMs = prefersReducedMotion ? 0 : (timing?.expandDelay ?? 330)
@@ -514,8 +524,9 @@ export const GoeyToast: FC<GoeyToastProps> = ({
 
       const isPreDismiss = preDismissRef.current
       const collapseDur = timing?.collapseDuration ?? 0.9
-      const collapseTransition = isPreDismiss
-        ? { duration: collapseDur, ease: [0.4, 0, 0.2, 1] as const }
+      // Use easing when spring is disabled or during pre-dismiss
+      const collapseTransition = (isPreDismiss || !useSpring)
+        ? { duration: collapseDur, ease: SMOOTH_EASE }
         : { type: 'spring' as const, duration: collapseDur, bounce: 0.2 }
 
       // Fire squish immediately as collapse begins — don't wait for morph to finish
@@ -548,7 +559,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     setShowBody(false)
     morphTRef.current = 0
     flush()
-  }, [isExpanded, flush, prefersReducedMotion])
+  }, [isExpanded, flush, prefersReducedMotion, useSpring, timing?.collapseDuration, triggerLandingSquish])
 
   // Pre-dismiss collapse: shrink back to pill before Sonner removes the toast
   useEffect(() => {
@@ -597,10 +608,11 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       // Capture current animated dims so we interpolate smoothly from
       // wherever the pill resize left off instead of snapping to target.
       const startDims = { ...aDims.current }
+      const morphExpandTransition = useSpring
+        ? { type: 'spring' as const, duration: timing?.expandDuration ?? 0.9, bounce: 0.2 }
+        : { duration: timing?.expandDuration ?? 0.6, ease: SMOOTH_EASE }
       morphCtrl.current = animate(0, 1, {
-        type: 'spring',
-        duration: timing?.expandDuration ?? 0.9,
-        bounce: 0.2,
+        ...morphExpandTransition,
         onUpdate: (t) => {
           morphTRef.current = t
           const target = dimsRef.current
@@ -624,7 +636,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       cancelAnimationFrame(raf)
       morphCtrl.current?.stop()
     }
-  }, [showBody, flush, prefersReducedMotion])
+  }, [showBody, flush, prefersReducedMotion, useSpring, timing?.expandDuration])
 
   // Header elastic squish: spring down when expanding, spring back once on collapse/dismiss
   const headerSquished = useRef(false)
@@ -634,6 +646,8 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     const el = headerRef.current
 
     if (showBody && !dismissing && !actionSuccess) {
+      // Skip header squish when spring is disabled
+      if (!useSpring) return
       // Squish down with elastic spring — scaled to expand timing
       headerSquished.current = true
       headerSquishCtrl.current = animate(0, 1, {
@@ -647,10 +661,11 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     } else if (headerSquished.current) {
       // Spring back to normal — match morph transition type
       headerSquished.current = false
-      const isSpringCollapse = !preDismissRef.current
+      // Use easing when spring is disabled or during pre-dismiss
+      const isSpringCollapse = !preDismissRef.current && useSpring
       const transition = isSpringCollapse
         ? squishSpring(collapseDur, DEFAULT_COLLAPSE_DUR)
-        : { duration: collapseDur * 0.5, ease: [0.4, 0, 0.2, 1] as const }
+        : { duration: collapseDur * 0.5, ease: SMOOTH_EASE }
       headerSquishCtrl.current = animate(1, 0, {
         ...transition,
         onUpdate: (v) => {
@@ -665,7 +680,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     }
 
     return () => { headerSquishCtrl.current?.stop() }
-  }, [showBody, dismissing, actionSuccess, prefersReducedMotion, expandDur, collapseDur])
+  }, [showBody, dismissing, actionSuccess, prefersReducedMotion, expandDur, collapseDur, useSpring])
 
   // Keep Sonner's toast stacking in sync when it re-renders (e.g. hover expand/collapse).
   // Sonner overwrites --offset/--initial-height with stale values from its React state,
