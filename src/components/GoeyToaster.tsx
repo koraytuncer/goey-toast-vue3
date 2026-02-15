@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Toaster } from 'sonner'
 import type { GoeyToasterProps } from '../types'
-import { setGoeyPosition, setGoeySpring } from '../context'
+import { setGoeyPosition, setGoeySpring, setGoeyBounce } from '../context'
 
 export function GoeyToaster({
   position = 'bottom-right',
@@ -16,6 +16,7 @@ export function GoeyToaster({
   visibleToasts,
   dir,
   spring = true,
+  bounce,
 }: GoeyToasterProps) {
   useEffect(() => {
     setGoeyPosition(position)
@@ -24,6 +25,10 @@ export function GoeyToaster({
   useEffect(() => {
     setGoeySpring(spring)
   }, [spring])
+
+  useEffect(() => {
+    setGoeyBounce(bounce)
+  }, [bounce])
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return

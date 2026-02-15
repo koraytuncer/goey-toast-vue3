@@ -27,6 +27,7 @@ function GoeyToastWrapper({
   borderWidth,
   timing,
   spring,
+  bounce,
 }: {
   initialPhase: GoeyToastPhase
   title: string
@@ -40,6 +41,7 @@ function GoeyToastWrapper({
   borderWidth?: number
   timing?: GoeyToastTimings
   spring?: boolean
+  bounce?: number
 }) {
   return (
     <ToastErrorBoundary>
@@ -56,6 +58,7 @@ function GoeyToastWrapper({
         borderWidth={borderWidth}
         timing={timing}
         spring={spring}
+        bounce={bounce}
       />
     </ToastErrorBoundary>
   )
@@ -130,6 +133,7 @@ function PromiseToastWrapper<T>({
         borderWidth={data.borderWidth}
         timing={data.timing}
         spring={data.spring}
+        bounce={data.bounce}
       />
     </ToastErrorBoundary>
   )
@@ -163,6 +167,7 @@ function createGoeyToast(
         borderWidth={options?.borderWidth}
         timing={options?.timing}
         spring={options?.spring}
+        bounce={options?.bounce}
       />
     ),
     {

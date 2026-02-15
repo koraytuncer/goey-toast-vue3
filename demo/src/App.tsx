@@ -90,9 +90,10 @@ function useCopy() {
 const DEMO_DEFAULTS = {
   spring: true,
   timing: {
-    expandDelay: 80,
-    expandDuration: 0.6,
-    collapseDuration: 0.8,
+    squishDelay: 45,
+    expandDelay: 330,
+    expandDuration: 0.9,
+    collapseDuration: 0.9,
     displayDuration: 3000,
   },
 } satisfies GoeyToastOptions
@@ -145,6 +146,7 @@ function App() {
   const [bBorderWidth, setBBorderWidth] = useState(1.5)
   const [bDisplayDuration, setBDisplayDuration] = useState(4000)
   const [bSpring, setBSpring] = useState(true)
+  const [bBounce, setBBounce] = useState(0.4)
 
   // Close mobile menu on page change
   useEffect(() => {
@@ -179,6 +181,7 @@ function App() {
       displayDuration: bDisplayDuration,
     }
     if (!bSpring) options.spring = false
+    options.bounce = bBounce
 
     if (bType === 'default') goeyToast(bTitle, options)
     else goeyToast[bType](bTitle, options)
@@ -189,7 +192,8 @@ function App() {
     const hasFill = bFillColor !== '#ffffff'
     const hasBorder = bHasBorder && bBorderColor
     const hasSpringOff = !bSpring
-    const hasOpts = bHasDesc || bHasAction || hasFill || hasBorder || hasSpringOff
+    const hasBounce = bBounce !== 0.4
+    const hasOpts = bHasDesc || bHasAction || hasFill || hasBorder || hasSpringOff || hasBounce
     const call = bType === 'default' ? 'goeyToast' : `goeyToast.${bType}`
 
     lines.push(`<GoeyToaster position="${bPosition}" />`)
@@ -211,6 +215,7 @@ function App() {
         lines.push(`  borderWidth: ${bBorderWidth},`)
       }
       if (hasSpringOff) lines.push(`  spring: false,`)
+      if (hasBounce) lines.push(`  bounce: ${bBounce},`)
       lines.push(`  timing: {`)
       lines.push(`    displayDuration: ${bDisplayDuration},`)
       lines.push(`  },`)
@@ -604,13 +609,21 @@ function App() {
                 </div>
               </div>
 
-              {/* Spring Animation */}
+              {/* Spring Effect */}
               <div className="builder-row">
-                <div className="toggle-row">
-                  <span className="toggle-row-label">Spring Animation</span>
-                  <button className="toggle" data-on={bSpring} onClick={() => setBSpring(!bSpring)}>
-                    <div className="toggle-knob" />
-                  </button>
+                <div className="builder-label">Spring Effect</div>
+                <div className="slider-group">
+                  <div className="slider-item">
+                    <div className="slider-item-header">
+                      <span className="slider-item-label">{bSpring ? `Bounce: ${bBounce.toFixed(2)}` : 'Off'}</span>
+                      <button className="toggle" data-on={bSpring} onClick={() => setBSpring(!bSpring)} style={{ transform: 'scale(0.85)' }}>
+                        <div className="toggle-knob" />
+                      </button>
+                    </div>
+                    {bSpring && (
+                      <input type="range" className="slider" min={0.05} max={0.8} step={0.05} value={bBounce} onChange={(e) => setBBounce(Number(e.target.value))} />
+                    )}
+                  </div>
                 </div>
               </div>
 
