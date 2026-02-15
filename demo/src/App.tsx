@@ -90,10 +90,6 @@ function useCopy() {
 const DEMO_DEFAULTS = {
   spring: true,
   timing: {
-    squishDelay: 45,
-    expandDelay: 330,
-    expandDuration: 0.9,
-    collapseDuration: 0.9,
     displayDuration: 3000,
   },
 } satisfies GoeyToastOptions
@@ -841,10 +837,6 @@ goeyToast.success('Deployed', {
                     <tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr>
                   </thead>
                   <tbody>
-                    <tr><td>squishDelay</td><td>number</td><td>45</td><td>Milliseconds before squish (simple toast, no description)</td></tr>
-                    <tr><td>expandDelay</td><td>number</td><td>330</td><td>Milliseconds before expand starts</td></tr>
-                    <tr><td>expandDuration</td><td>number</td><td>0.9</td><td>Seconds for pill to blob morph</td></tr>
-                    <tr><td>collapseDuration</td><td>number</td><td>0.9</td><td>Seconds for blob to pill morph</td></tr>
                     <tr><td>displayDuration</td><td>number</td><td>4000</td><td>Milliseconds toast stays visible</td></tr>
                   </tbody>
                 </table>

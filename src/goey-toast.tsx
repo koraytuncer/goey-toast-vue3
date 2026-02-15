@@ -84,7 +84,7 @@ function PromiseToastWrapper<T>({
   useEffect(() => {
     const resetDuration = (hasExpandedContent: boolean) => {
       const baseDuration = data.timing?.displayDuration ?? (hasExpandedContent ? DEFAULT_EXPANDED_DURATION : undefined)
-      const collapseDurMs = (data.timing?.collapseDuration ?? 0.9) * 1000
+      const collapseDurMs = 0.9 * 1000
       const duration = baseDuration != null && hasExpandedContent ? baseDuration + collapseDurMs : baseDuration
       if (duration != null) {
         toast.custom(() => (

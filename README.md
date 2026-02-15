@@ -11,7 +11,7 @@
 - Promise toasts with loading &rarr; success/error transitions
 - Action buttons with optional success label morph-back
 - Description body supporting strings and React components
-- Configurable timing for expand delay, morph duration, collapse, and display
+- Configurable display duration
 - Custom fill color, border color, and border width
 - CSS class overrides via `classNames` prop
 - Position support with automatic horizontal mirroring for right-side positions
@@ -120,10 +120,6 @@ Fine-tune animation speeds per toast.
 
 | Property           | Type     | Default | Description                          |
 | ------------------ | -------- | ------- | ------------------------------------ |
-| `squishDelay`      | `number` | 45      | Milliseconds before squish (simple toast, no description) |
-| `expandDelay`      | `number` | 330     | Milliseconds before expand starts (toast with description) |
-| `expandDuration`   | `number` | 0.9     | Seconds for pill-to-blob morph       |
-| `collapseDuration` | `number` | 0.9     | Seconds for blob-to-pill morph       |
 | `displayDuration`  | `number` | 4000    | Milliseconds toast stays expanded    |
 
 ### `GoeyToastClassNames`
@@ -272,9 +268,6 @@ goeyToast.success('Styled!', {
 goeyToast.success('Saved', {
   description: 'Your changes have been synced.',
   timing: {
-    expandDelay: 200,
-    expandDuration: 0.6,
-    collapseDuration: 0.6,
     displayDuration: 5000,
   },
 })
