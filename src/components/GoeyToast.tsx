@@ -347,10 +347,9 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     const pos = getGoeyPosition()
     const rightSide = pos?.includes('right') ?? false
     const centerPos = pos?.includes('center') ?? false
-    // Center positions: use full body width during morph so pill stays fixed at center
-    // At t=0 (compact), wrapper is pill-width so use regular morphPath (no centering needed)
-    // Use max of animated bw, target bw, and expanded bw to handle action-success collapse
-    if (centerPos && t > 0) {
+    // Center positions: always use morphPathCenter so pill stays at fixed center offset
+    // (switching to morphPath at t=0 causes a frame where content jumps left)
+    if (centerPos) {
       const centerBw = Math.max(b, dimsRef.current.bw, expandedDimsRef.current.bw, p)
       pathRef.current?.setAttribute('d', morphPathCenter(p, centerBw, h, t))
     } else {
@@ -375,20 +374,21 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       const pillW = Math.min(p, b)
       const currentW = pillW + (b - pillW) * t
       const currentH = PH + (targetTh - PH) * t
+      // Center: use stable full width (dimsRef may shrink during collapse)
+      const centerFullW = centerPos ? Math.max(b, dimsRef.current.bw, expandedDimsRef.current.bw, p) : 0
       if (wrapperRef.current) {
-        // Center: full body width so SVG morph path has room
-        const centerFullW = Math.max(b, dimsRef.current.bw, expandedDimsRef.current.bw)
         wrapperRef.current.style.width = (centerPos ? centerFullW : currentW) + 'px'
       }
       if (contentRef.current) {
-        contentRef.current.style.width = targetBw + 'px'
+        // Center: content width = wrapper width so textAlign:center keeps header aligned with SVG pill
+        contentRef.current.style.width = (centerPos ? centerFullW : targetBw) + 'px'
         contentRef.current.style.overflow = 'hidden'
         contentRef.current.style.maxHeight = currentH + 'px'
-        const clip = targetBw - currentW
         if (centerPos) {
-          const halfClip = clip / 2
-          contentRef.current.style.clipPath = `inset(0 ${halfClip}px 0 ${halfClip}px)`
+          const clip = (centerFullW - currentW) / 2
+          contentRef.current.style.clipPath = `inset(0 ${clip}px 0 ${clip}px)`
         } else {
+          const clip = targetBw - currentW
           contentRef.current.style.clipPath = rightSide
             ? `inset(0 0 0 ${clip}px)`
             : `inset(0 ${clip}px 0 0)`
@@ -398,13 +398,23 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       // Compact: constrain to pill dimensions
       const pillW = Math.min(p, b)
       if (wrapperRef.current) {
-        wrapperRef.current.style.width = pillW + 'px'
+        // Center: keep body width so pill SVG offset stays consistent (no frame jump)
+        const centerBw = centerPos ? Math.max(b, dimsRef.current.bw, expandedDimsRef.current.bw, p) : pillW
+        wrapperRef.current.style.width = centerBw + 'px'
       }
       if (contentRef.current) {
-        contentRef.current.style.width = ''
+        if (centerPos) {
+          // Keep content locked at body width with symmetric clip to match SVG pill position
+          const centerBwVal = Math.max(b, dimsRef.current.bw, expandedDimsRef.current.bw, p)
+          contentRef.current.style.width = centerBwVal + 'px'
+          const clip = (centerBwVal - pillW) / 2
+          contentRef.current.style.clipPath = `inset(0 ${clip}px 0 ${clip}px)`
+        } else {
+          contentRef.current.style.width = ''
+          contentRef.current.style.clipPath = ''
+        }
         contentRef.current.style.overflow = 'hidden'
         contentRef.current.style.maxHeight = PH + 'px'
-        contentRef.current.style.clipPath = ''
       }
     }
   }, [])
