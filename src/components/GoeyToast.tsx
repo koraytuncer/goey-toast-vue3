@@ -350,7 +350,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     // Center positions: always use morphPathCenter so pill stays at fixed center offset
     // (switching to morphPath at t=0 causes a frame where content jumps left)
     if (centerPos) {
-      const centerBw = Math.max(b, dimsRef.current.bw, expandedDimsRef.current.bw, p)
+      const centerBw = Math.max(dimsRef.current.bw, expandedDimsRef.current.bw, p)
       pathRef.current?.setAttribute('d', morphPathCenter(p, centerBw, h, t))
     } else {
       pathRef.current?.setAttribute('d', morphPath(p, b, h, t))
@@ -375,7 +375,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       const currentW = pillW + (b - pillW) * t
       const currentH = PH + (targetTh - PH) * t
       // Center: use stable full width (dimsRef may shrink during collapse)
-      const centerFullW = centerPos ? Math.max(b, dimsRef.current.bw, expandedDimsRef.current.bw, p) : 0
+      const centerFullW = centerPos ? Math.max(dimsRef.current.bw, expandedDimsRef.current.bw, p) : 0
       if (wrapperRef.current) {
         wrapperRef.current.style.width = (centerPos ? centerFullW : currentW) + 'px'
       }
@@ -399,13 +399,13 @@ export const GoeyToast: FC<GoeyToastProps> = ({
       const pillW = Math.min(p, b)
       if (wrapperRef.current) {
         // Center: keep body width so pill SVG offset stays consistent (no frame jump)
-        const centerBw = centerPos ? Math.max(b, dimsRef.current.bw, expandedDimsRef.current.bw, p) : pillW
+        const centerBw = centerPos ? Math.max(dimsRef.current.bw, expandedDimsRef.current.bw, p) : pillW
         wrapperRef.current.style.width = centerBw + 'px'
       }
       if (contentRef.current) {
         if (centerPos) {
           // Keep content locked at body width with symmetric clip to match SVG pill position
-          const centerBwVal = Math.max(b, dimsRef.current.bw, expandedDimsRef.current.bw, p)
+          const centerBwVal = Math.max(dimsRef.current.bw, expandedDimsRef.current.bw, p)
           contentRef.current.style.width = centerBwVal + 'px'
           const clip = (centerBwVal - pillW) / 2
           contentRef.current.style.clipPath = `inset(0 ${clip}px 0 ${clip}px)`
