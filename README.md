@@ -11,10 +11,13 @@
 - Promise toasts with loading &rarr; success/error transitions
 - Action buttons with optional success label morph-back
 - Description body supporting strings and React components
-- Configurable display duration
+- Configurable display duration and bounce intensity
 - Custom fill color, border color, and border width
 - CSS class overrides via `classNames` prop
-- Position support with automatic horizontal mirroring for right-side positions
+- 6 positions with automatic horizontal mirroring for right-side positions
+- Center positions with symmetric morph animation
+- Hover pause: hovering an expanded toast pauses the dismiss timer
+- Hover re-expand: hovering a collapsed pill re-expands the toast
 - Pre-dismiss collapse animation
 
 ## Installation
@@ -143,7 +146,7 @@ Props for the `<GoeyToaster />` component.
 
 | Prop         | Type                                  | Default          | Description                                   |
 | ------------ | ------------------------------------- | ---------------- | --------------------------------------------- |
-| `position`   | `'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right'` | `'bottom-right'` | Toast position (right-side positions auto-mirror the blob) |
+| `position`   | `'top-left' \| 'top-center' \| 'top-right' \| 'bottom-left' \| 'bottom-center' \| 'bottom-right'` | `'bottom-right'` | Toast position |
 | `duration`   | `number`                              | --               | Default display duration in ms                |
 | `gap`        | `number`                              | `14`             | Gap between stacked toasts (px)               |
 | `offset`     | `number \| string`                    | `'24px'`         | Distance from screen edge                     |
@@ -262,14 +265,12 @@ goeyToast.success('Styled!', {
 })
 ```
 
-### Custom Timing
+### Display Duration
 
 ```tsx
 goeyToast.success('Saved', {
   description: 'Your changes have been synced.',
-  timing: {
-    displayDuration: 5000,
-  },
+  timing: { displayDuration: 5000 },
 })
 ```
 

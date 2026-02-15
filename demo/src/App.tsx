@@ -302,9 +302,11 @@ function App() {
                 <li>Description body with string or ReactNode support</li>
                 <li>Action button with optional success label morph-back</li>
                 <li>Promise toasts with loading to success/error transitions</li>
-                <li>Configurable timing: expand delay, morph duration, collapse, display</li>
-                <li>Position support: top-left, top-right, bottom-left, bottom-right</li>
+                <li>Configurable display duration and bounce intensity</li>
+                <li>6 positions: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right</li>
                 <li>Right-side positions auto-mirror the blob horizontally</li>
+                <li>Hover pause: hovering an expanded toast pauses the dismiss timer</li>
+                <li>Hover re-expand: hovering a collapsed pill re-expands the toast</li>
                 <li>Pre-dismiss collapse animation (blob shrinks to pill before exit)</li>
                 <li>Custom fill color, border color, and border width</li>
                 <li>CSS class overrides via classNames prop</li>
@@ -828,7 +830,7 @@ goeyToast.success('Deployed', {
               </div>
               <div className="doc-section-content">
                 <p>
-                  Fine-tune animation speeds per toast with the{' '}
+                  Control how long toasts stay visible with the{' '}
                   <span className="inline-code">timing</span> option.
                 </p>
                 <div className="table-scroll">
@@ -851,23 +853,23 @@ goeyToast.success('Deployed', {
               </div>
               <div className="doc-section-content">
                 <p>
-                  Right-side positions (<span className="inline-code">top-right</span>,{' '}
-                  <span className="inline-code">bottom-right</span>) automatically mirror the blob
-                  shape horizontally so the organic lobe faces inward.
+                  6 positions supported. Right-side positions auto-mirror the blob horizontally.
+                  Center positions use a symmetric morph where the body grows outward from the pill.
                 </p>
-                <pre><code>{`<GoeyToaster position="top-right" />`}</code></pre>
+                <pre><code>{`<GoeyToaster position="top-center" />`}</code></pre>
                 <div className="table-scroll">
                 <table className="prop-table">
                   <thead>
                     <tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr>
                   </thead>
                   <tbody>
-                    <tr><td>position</td><td>string</td><td>'bottom-right'</td><td>Toast position — blob mirrors on right-side positions</td></tr>
+                    <tr><td>position</td><td>string</td><td>'bottom-right'</td><td>6 positions: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right</td></tr>
                     <tr><td>duration</td><td>number</td><td>—</td><td>Default display duration (ms)</td></tr>
                     <tr><td>gap</td><td>number</td><td>14</td><td>Gap between stacked toasts</td></tr>
                     <tr><td>offset</td><td>number | string</td><td>'24px'</td><td>Distance from screen edge</td></tr>
                     <tr><td>theme</td><td>'light' | 'dark'</td><td>'light'</td><td>Color theme</td></tr>
                     <tr><td>spring</td><td>boolean</td><td>true</td><td>Enable spring/bounce animations globally</td></tr>
+                    <tr><td>bounce</td><td>number</td><td>0.4</td><td>Spring intensity: 0.05 (subtle) to 0.8 (dramatic)</td></tr>
                   </tbody>
                 </table>
                 </div>
@@ -897,6 +899,7 @@ goeyToast.success('Deployed', {
                     <tr><td>borderWidth</td><td>number</td><td>Border width in px (default 1.5)</td></tr>
                     <tr><td>timing</td><td>GoeyToastTimings</td><td>Animation timing overrides</td></tr>
                     <tr><td>spring</td><td>boolean</td><td>Enable spring/bounce animations (default true)</td></tr>
+                    <tr><td>bounce</td><td>number</td><td>Spring intensity: 0.05 (subtle) to 0.8 (dramatic), default 0.4</td></tr>
                   </tbody>
                 </table>
                 </div>
