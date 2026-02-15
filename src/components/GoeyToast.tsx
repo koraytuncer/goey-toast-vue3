@@ -433,6 +433,7 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     contentRef.current.style.maxHeight = savedMH
     contentRef.current.style.width = savedCW
 
+    dimsRef.current = { pw, bw, th }
     setDims({ pw, bw, th })
   }, [])
 
@@ -717,16 +718,51 @@ export const GoeyToast: FC<GoeyToastProps> = ({
 
   // Re-expand on hover: if collapsed/collapsing and user hovers, reverse it
   const canExpand = hasDescription || hasAction
+  const reExpandingRef = useRef(false)
   useEffect(() => {
     if (!hovered || !canExpand || !dismissing) return
-    // Stop collapse morph, reset state, re-expand
+    // Stop collapse morph, reset state
     morphCtrl.current?.stop()
     collapsingRef.current = false
     preDismissRef.current = false
-    remainingRef.current = null // fresh timer on next cycle
+    remainingRef.current = null
+    reExpandingRef.current = true
     setDismissing(false)
-    // Set showBody immediately so the expand morph starts without Phase 1 delay
     setShowBody(true)
+
+    // Directly drive the expand morph from current position
+    // Can't rely on Phase 2 because showBody might already be true (mid-collapse hover)
+    const currentT = morphTRef.current
+    const startDims = { ...aDims.current }
+    const morphExpandTransition = useSpring
+      ? { type: 'spring' as const, duration: timing?.expandDuration ?? 0.9, bounce: bounceVal }
+      : { duration: timing?.expandDuration ?? 0.6, ease: SMOOTH_EASE }
+
+    // Wait one frame for measure to update dimsRef with expanded content
+    requestAnimationFrame(() => {
+      morphCtrl.current = animate(currentT, 1, {
+        ...morphExpandTransition,
+        onUpdate: (t) => {
+          morphTRef.current = t
+          const target = dimsRef.current
+          aDims.current = {
+            pw: startDims.pw + (target.pw - startDims.pw) * t,
+            bw: startDims.bw + (target.bw - startDims.bw) * t,
+            th: startDims.th + (target.th - startDims.th) * t,
+          }
+          flush()
+        },
+        onComplete: () => {
+          morphTRef.current = 1
+          aDims.current = { ...dimsRef.current }
+          reExpandingRef.current = false
+          flush()
+          syncSonnerHeights(wrapperRef.current)
+        },
+      })
+    })
+
+    return () => { morphCtrl.current?.stop() }
   }, [hovered, dismissing, canExpand])
 
   // Dismiss from Sonner after collapse completes and user is not hovering
@@ -738,8 +774,17 @@ export const GoeyToast: FC<GoeyToastProps> = ({
     return () => clearTimeout(t)
   }, [dismissing, showBody, hovered, toastId])
 
+  // Dismiss after action success morph-back completes
+  useEffect(() => {
+    if (!toastId || !actionSuccess || showBody) return
+    const t = setTimeout(() => sonnerToast.dismiss(toastId), 1200)
+    return () => clearTimeout(t)
+  }, [toastId, actionSuccess, showBody])
+
   // Phase 2: morph from pill → blob
   useEffect(() => {
+    // Skip if re-expand is driving the morph
+    if (reExpandingRef.current) return
     if (!showBody) {
       morphTRef.current = 0
       morphCtrl.current?.stop()
@@ -855,13 +900,13 @@ export const GoeyToast: FC<GoeyToastProps> = ({
   // Action button handler
   const handleActionClick = useCallback(() => {
     if (!effectiveAction) return
-    effectiveAction.onClick()
     if (effectiveAction.successLabel) {
-      // Save expanded dims synchronously before React re-renders
+      // Save expanded dims synchronously before onClick (which may throw)
       expandedDimsRef.current = { ...aDims.current }
       collapsingRef.current = true
       setActionSuccess(effectiveAction.successLabel)
     }
+    try { effectiveAction.onClick() } catch { /* onClick errors shouldn't block morph-back */ }
   }, [effectiveAction])
 
   const renderIcon = () => {
