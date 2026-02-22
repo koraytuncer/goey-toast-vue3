@@ -1,5 +1,7 @@
 # goey-toast-vue
 
+[![goey-toast-vue](https://goey-toast-vue.netlify.app/og-image.png)](https://goey-toast-vue.netlify.app)
+
 Morphing toast notifications for Vue 3. Organic blob animations, promise tracking, and full customization out of the box.
 
 **[Live Demo & Docs](https://goey-toast-vue.netlify.app)**
