@@ -85,9 +85,10 @@ function createPromiseWrapper<T>(
 
       promise
         .then((result) => {
-          const desc = typeof data.description?.success === 'function'
-            ? data.description.success(result)
-            : data.description?.success
+          const successDesc = data.description?.success
+          const desc: GoeyRenderable = (typeof successDesc === 'function' && !('setup' in successDesc) && !('render' in successDesc))
+            ? (successDesc as (data: T) => GoeyRenderable)(result)
+            : successDesc as GoeyRenderable
           title.value = typeof data.success === 'function' ? data.success(result) : data.success
           description.value = desc
           action.value = data.action?.success
@@ -95,9 +96,10 @@ function createPromiseWrapper<T>(
           resetDuration(Boolean(desc || data.action?.success))
         })
         .catch((err) => {
-          const desc = typeof data.description?.error === 'function'
-            ? data.description.error(err)
-            : data.description?.error
+          const errorDesc = data.description?.error
+          const desc: GoeyRenderable = (typeof errorDesc === 'function' && !('setup' in errorDesc) && !('render' in errorDesc))
+            ? (errorDesc as (error: unknown) => GoeyRenderable)(err)
+            : errorDesc as GoeyRenderable
           title.value = typeof data.error === 'function' ? data.error(err) : data.error
           description.value = desc
           action.value = data.action?.error
