@@ -1,14 +1,14 @@
-import type { ToasterProps } from 'sonner'
+type Position = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top-center' | 'bottom-center'
 
-let _position: ToasterProps['position'] = 'bottom-right'
+let _position: Position = 'bottom-right'
 let _spring: boolean = true
 let _bounce: number | undefined = undefined
 
-export function setGoeyPosition(position: ToasterProps['position']) {
-  _position = position
+export function setGoeyPosition(position: Position | undefined) {
+  if (position) _position = position
 }
 
-export function getGoeyPosition() {
+export function getGoeyPosition(): Position {
   return _position
 }
 

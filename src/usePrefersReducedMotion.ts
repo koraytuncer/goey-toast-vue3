@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const QUERY = '(prefers-reduced-motion: reduce)'
 
@@ -9,20 +9,25 @@ function getInitialState(): boolean {
   return window.matchMedia(QUERY).matches
 }
 
-export function usePrefersReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(getInitialState)
+export function usePrefersReducedMotion() {
+  const prefersReducedMotion = ref(getInitialState())
 
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return
-    }
-    const mql = window.matchMedia(QUERY)
-    const handler = (event: MediaQueryListEvent) => {
-      setPrefersReducedMotion(event.matches)
-    }
+  let mql: MediaQueryList | null = null
+
+  const handler = (event: MediaQueryListEvent) => {
+    prefersReducedMotion.value = event.matches
+  }
+
+  onMounted(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    mql = window.matchMedia(QUERY)
+    prefersReducedMotion.value = mql.matches
     mql.addEventListener('change', handler)
-    return () => mql.removeEventListener('change', handler)
-  }, [])
+  })
+
+  onUnmounted(() => {
+    mql?.removeEventListener('change', handler)
+  })
 
   return prefersReducedMotion
 }

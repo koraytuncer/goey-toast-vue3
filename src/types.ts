@@ -1,7 +1,12 @@
-import type { ReactNode } from 'react'
-import type { ExternalToast, ToasterProps } from 'sonner'
+import type { VNode, Component } from 'vue'
+import type { ExternalToast, ToasterProps } from 'vue-sonner'
 
 export type GoeyToastType = 'default' | 'success' | 'error' | 'warning' | 'info'
+
+export type GoeyToastPhase = 'loading' | 'default' | 'success' | 'error' | 'warning' | 'info'
+
+/** Anything renderable as toast description or custom icon */
+export type GoeyRenderable = string | VNode | Component | null | undefined
 
 export interface GoeyToastTimings {
   displayDuration?: number
@@ -26,10 +31,10 @@ export interface GoeyToastAction {
 
 export interface GoeyToastData {
   title: string
-  description?: ReactNode
+  description?: GoeyRenderable
   type: GoeyToastType
   action?: GoeyToastAction
-  icon?: ReactNode
+  icon?: GoeyRenderable
   duration?: number
   classNames?: GoeyToastClassNames
   fillColor?: string
@@ -40,9 +45,9 @@ export interface GoeyToastData {
 }
 
 export interface GoeyToastOptions {
-  description?: ReactNode
+  description?: GoeyRenderable
   action?: GoeyToastAction
-  icon?: ReactNode
+  icon?: GoeyRenderable
   duration?: number
   id?: string | number
   classNames?: GoeyToastClassNames
@@ -59,9 +64,9 @@ export interface GoeyPromiseData<T> {
   success: string | ((data: T) => string)
   error: string | ((error: unknown) => string)
   description?: {
-    loading?: ReactNode
-    success?: ReactNode | ((data: T) => ReactNode)
-    error?: ReactNode | ((error: unknown) => ReactNode)
+    loading?: GoeyRenderable
+    success?: GoeyRenderable | ((data: T) => GoeyRenderable)
+    error?: GoeyRenderable | ((error: unknown) => GoeyRenderable)
   }
   action?: {
     success?: GoeyToastAction
@@ -76,20 +81,18 @@ export interface GoeyPromiseData<T> {
   bounce?: number
 }
 
-export type GoeyToastPhase = 'loading' | 'default' | 'success' | 'error' | 'warning' | 'info'
-
 export interface GoeyToasterProps {
   position?: ToasterProps['position']
   duration?: number
   gap?: number
   offset?: number | string
-  theme?: 'light' | 'dark'
+  theme?: 'light' | 'dark' | 'system'
   toastOptions?: Partial<ExternalToast>
   expand?: boolean
   closeButton?: boolean
   richColors?: boolean
   visibleToasts?: number
-  dir?: 'ltr' | 'rtl'
+  dir?: 'ltr' | 'rtl' | 'auto'
   spring?: boolean
   bounce?: number
 }

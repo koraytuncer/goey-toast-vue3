@@ -1,5 +1,5 @@
 import './components/GoeyToast.css'
-export { GoeyToaster } from './components/GoeyToaster'
+export { default as GoeyToaster } from './components/GoeyToaster.vue'
 export { goeyToast } from './goey-toast'
 export type {
   GoeyToastOptions,
@@ -8,4 +8,5 @@ export type {
   GoeyToastAction,
   GoeyToastClassNames,
   GoeyToastTimings,
+  GoeyRenderable,
 } from './types'
