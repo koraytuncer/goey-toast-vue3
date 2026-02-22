@@ -18,5 +18,14 @@ export default defineConfig({
           }
         : {}),
     },
+    dedupe: ['vue', 'vue-sonner', 'motion'],
+  },
+  build: {
+    rollupOptions: {
+      // src/ kaynak kodu demo/node_modules üzerinden resolve edilir
+    },
+  },
+  optimizeDeps: {
+    include: ['vue-sonner', 'motion'],
   },
 })
